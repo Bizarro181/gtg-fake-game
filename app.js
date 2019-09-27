@@ -3,6 +3,8 @@ const cors = require( 'cors' );
 const app = express();
 const server = require( 'http' ).Server( app );
 
+let paused = false;
+
 // Register middleware
 app.use( cors() );
 app.use( express.json() );
@@ -25,13 +27,8 @@ app.post( '/start', ( req, res ) => {
 app.post( '/status', ( req, res ) => {
 	// Set a timeout so this delays just to see
 	setTimeout(function(){
-		var rand = Math.floor( Math.random() * 9 );
-		if( rand == 8 || rand == 6 || rand == 4 ) {
-			res.status( 500 ).json( { status: 'error' } );
-		} else {
-			res.status( 200 ).json( { status: 'idle' } );
-		}
-		console.log( "reported status" );
+		console.log( "redirected to dump" );
+		res.redirect( '/dump' );
 	}, 500 );
 });
 
@@ -39,29 +36,41 @@ app.post( '/status', ( req, res ) => {
 app.post( '/pause', ( req, res ) => {
 	// Set a timeout so this delays just to see
 	setTimeout(function(){
-		res.status( 200 ).json( { status: 'paused' } );
-		console.log( "Paused, status now paused" );
+		let status;
+		paused = !paused;
+		if( paused ) {
+			status = "paused";
+		} else {
+			status = "running";
+		}
+		res.status( 200 ).json( { status: status } );
+		console.log( "Toggled to " + status );
 	}, 500 );
 });
 
-// Resume a game
-app.post( '/resume', ( req, res ) => {
+// get a dump
+app.post( '/dump', ( req, res ) => {
 	// Set a timeout so this delays just to see
 	setTimeout(function(){
-		res.status( 200 ).json( { status: 'running' } );
-		console.log( "Resumed, status now resumed" );
+		var rand = Math.floor( Math.random() * 9 );
+		if( rand == 8 || rand == 6 || rand == 4 ) {
+			res.status( 500 ).json( { status: 'error' } );
+		} else {
+			res.status( 200 ).json( { status: 'idle' } );
+		}
+		console.log( "Dumped" );
 	}, 500 );
 });
 
 // Stop the current game and reset to 
-app.post( '/reset', ( req, res ) => {
+app.post( '/kill', ( req, res ) => {
 	// Set a timeout so this delays just to see
 	setTimeout(function(){
 		res.status( 200 ).json( { status: 'idle' } );
-		console.log( "Reset, status now idle" );
+		console.log( "Killed, status now idle" );
 	}, 500 );
 });
 
 
-// Health Check
+// Health Check (this can probably happen in dump now)
 // server needs enpoint for health check with respond with "degraded" if something is wrong and dashboard will recieve a text message back of a status message
